@@ -1,6 +1,11 @@
 {
   "extends": "expo/tsconfig.base",
+  "ts-node": {
+    "files": true
+  },
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "allowJs": true,
+    "target": "es5"
   }
 }

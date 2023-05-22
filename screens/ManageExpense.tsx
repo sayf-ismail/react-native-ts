@@ -1,17 +1,20 @@
-import { useContext, useLayoutEffect } from "react";
+import { useContext, useLayoutEffect, useState } from "react";
 import { Text, View, StyleSheet, TextInput } from "react-native";
 import Button from "../components/UI/Button";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
+import { storeExpense, updateExpense, deleteExpense } from "../util/http";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 function ManageExpense({ route, navigation }: any) {
-  const expenseCtx = useContext(ExpensesContext);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const expensesCtx = useContext(ExpensesContext);
   const editedExpenseId = route.params?.expenseId;
   const isEditing = !!editedExpenseId;
 
-  const selectedExpense = expenseCtx.expenses.find(
+  const selectedExpense = expensesCtx.expenses.find(
     (expense) => expense?.id === editedExpenseId
   );
 
@@ -21,8 +24,11 @@ function ManageExpense({ route, navigation }: any) {
     });
   }, [navigation, isEditing]);
 
-  function deleteExpenseHandler() {
-    expenseCtx.deleteExpense(editedExpenseId);
+  async function deleteExpenseHandler() {
+    setIsSubmitting(true);
+    await deleteExpense(editedExpenseId);
+
+    expensesCtx.deleteExpense(editedExpenseId);
     navigation.goBack();
   }
 
@@ -30,13 +36,20 @@ function ManageExpense({ route, navigation }: any) {
     navigation.goBack();
   }
 
-  function confirmHandler(expenseData: Expense) {
+  async function confirmHandler(expenseData: Expense) {
+    setIsSubmitting(true);
     if (isEditing) {
-      expenseCtx.updateExpense(editedExpenseId, expenseData);
+      expensesCtx.updateExpense(editedExpenseId, expenseData);
+      updateExpense(editedExpenseId, expenseData);
     } else {
-      expenseCtx.addExpense(expenseData);
+      const id: string = await storeExpense(expenseData);
+      expensesCtx.addExpense({ ...expenseData, id: id });
     }
     navigation.goBack();
+  }
+
+  if (isSubmitting) {
+    return <LoadingOverlay />;
   }
 
   return (

@@ -1,12 +1,9 @@
-type Expense =
-  | {
-      id?: string;
-      description: string;
-      amount: number;
-      date: Date;
-    }
-  | undefined
-  | null;
+type Expense = {
+  id: string;
+  description: string;
+  amount: number;
+  date: Date;
+};
 
 type ExpensesOutputProps = {
   expenses?: Expense[] | undefined;
